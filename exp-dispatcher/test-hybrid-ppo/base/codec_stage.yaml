@@ -1,0 +1,49 @@
+cudnn_benchmark: false
+
+print_freq: 400  # show log
+snapshot_freq: 100000  # save ckpt 1000 * 2000 = 2000000 / 1000000 = 2
+val_freq: 40000  # 400 * 100
+
+lfs_config:
+  league: dic.automl.ppo.LossFuncSearch
+
+  num_groups: 8
+
+  reward_func: dic.lfs.reward.reward_base_bpp_pow2
+  reward_kwargs:
+    req_more: True
+
+  lambda_dis: 0.05
+  loss_func: dic.lfs.loss.hybrid_mse_ssim_1lambda_exp_repara
+  loss_kwargs:
+    base: e
+
+  # bs16 ds8000 500iter/epoch epoch=iter÷iter_per_epoch
+  start_sample_iter: 1000
+  # the first key point larger than 1000 is 5000
+  lfs_start_update_iter: 6000
+  # the first key point larger than 6000 is 10000. when iter reach 9999 update was triggered
+  sample_step: 5000
+  update_freq: 5000
+
+  sample_type: dic.automl.ppo.LFSBaseAgent
+  agent_kwargs:
+    loc:  # origin pos of loss
+      - 0.
+    obs_dim: 19
+    act_dim: 1 # len of `a' which is parameter of loss
+    gamma: 0.99
+    lam: 0.95
+    clip_ratio: 0.2
+    train_pi_iters: 80
+    target_kl: 0.01
+    train_v_iters: 80
+    samples_per_group_in_buf: 4
+    ac: dic.automl.core.MLPActorCritic
+    ac_kwargs:
+      hidden_sizes:
+        - 64
+        - 64
+
+
+

@@ -1,0 +1,155 @@
+log_dir: $EXP_ROOT/logs
+
+test_n_jobs: 0
+
+dataset: # Required.
+  type: base
+  train:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/trainset.txt
+  test:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/kodak.txt
+  color_image: True
+  batch_size: 16
+  workers: 3            # number of workers of dataloader for each process
+  data_augment:
+    train:
+      - img_random_crop:
+          crop_size: 256
+    test:
+                                                          
+
+lr: 1e-4
+lr_milestion: [3000] # training with 1e-4 forever
+lr_scheduler_gamma: 0.5
+
+epoch: 2001
+show_interval: 2000
+show_bpp_interval: 200000
+test_interval: 2 # deprecated
+snapshot_interval: 100
+
+linklink: True
+load_epoch: -1
+
+codec: edic-share-weight
+
+entropy_model_args:
+  K: 3
+
+vars:
+  C: 128
+  2C: 256
+  4C: 512
+  9C: 1152
+
+model_arch:
+  y_encoder:
+    import: nets.encoder.YEncoderCheng20
+    kwargs:
+      normalization: gdn
+      conv: signal  # 'signal' or 'conv'
+      in_channels: 3
+      out_channels: $C
+
+  y_decoder: 
+    import: nets.decoder.YDecoderCheng20
+    kwargs:
+      deconv: signal  # 'signal' or 'deconv'
+      in_channels: 3
+      out_channels: $C
+
+  y_quant: 
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: RT
+
+  entropy_pre: 
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: gaussian
+      likelihood_bound: 0.000000001
+      scale_bound: 0.11
+      num_filters: $C
+
+  y_context:
+    import: nets.context.context_models
+    kwargs:
+      tag: checkerboard
+      in_channels: $C
+      out_channels: $2C
+
+  y_context2:
+    import: nets.context.context_models
+    kwargs:
+      tag: zero
+      in_channels: $C
+      out_channels: $2C
+
+  gate:
+    import: nets.context.gate_models
+    kwargs:
+      tag: checkerboard
+
+  y_parameter:
+    import: nets.param.ParamCheng20
+    kwargs:
+      conv: signal
+      in_channels: $4C
+      out_channels: $9C
+
+  z_encoder:
+    import: nets.encoder.ZEncoderCheng20
+    kwargs:
+      normalization: gdn
+      conv: signal
+      in_channels: $C
+      out_channels: $C
+
+  z_attention:
+    import: torch.nn.Identity
+    kwargs:
+      in_channels: $C
+
+  z_decoder: 
+    import: nets.decoder.ZDecoderCheng20
+    kwargs:
+      deconv: deconv # according to original code, disable rdft here
+      in_channels: $C
+      out_channels: $C # actually 2*C
+
+  z_quant: 
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: RT
+
+  z_entropy_pre: 
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: bottleneck
+      likelihood_bound: 0.000000001
+      num_filters: $C
+
+  post:
+    import: torch.nn.Identity
+
+
+BIT: 1
+b_range: [0]
+num_features_encode: 256
+num_features_decode: 256
+num_features_entropy_model: 256
+
+entropy_AE: True
+compress_per_channel: True
+decompress: False
+ae_backend: cc
+adapt: False
+lambda1: 0.
+lambda2: 0.0075
+lambda4: 1.
+lambda4s: [1.]
+
+
+

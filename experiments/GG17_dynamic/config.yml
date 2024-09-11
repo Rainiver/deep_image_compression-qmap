@@ -1,0 +1,86 @@
+dataset: # Required.
+  type: base
+  train:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/trainset.txt
+  test:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/kodak.txt
+  color_image: True
+  batch_size: 16
+  workers: 3            # number of workers of dataloader for each process
+  data_augment:
+    train:
+      - img_random_crop:
+          crop_size: 256
+    test:
+
+log_dir: $EXP_ROOT/logs
+GPUs: 1
+test_n_jobs: 8
+
+lr: 1e-4
+lr_milestion: [3000] # training with 1e-4 forever
+lr_scheduler_gamma: 0.5
+
+epoch: 2001
+show_interval: 50
+show_bpp_interval: 2000
+test_interval: 2 # deprecated
+snapshot_interval: 20
+
+linklink: True
+load_epoch: -1
+
+codec: gg17
+
+vars:
+  N_CHANNELS: 256
+
+model_arch:
+  y_encoder:
+    import: nets.encoder.encoders
+    kwargs:
+      tag: YGG17
+      in_channels: $N_CHANNELS
+      out_channels: $N_CHANNELS
+      normalization: gdn
+      conv: signal  # 'signal' or 'conv'
+
+  y_decoder:
+    import: nets.decoder.decoders
+    kwargs:
+      tag: YGG17
+      in_channels: $N_CHANNELS
+      out_channels: $N_CHANNELS
+      deconv: signal  # 'signal' or 'deconv'
+
+  y_quant:
+    import: quant.quantizator.quantizators
+    args:
+      - RT
+
+  entropy_pre:
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: bottleneck
+      num_filters: $N_CHANNELS
+      likelihood_bound: 0.000000001
+
+BIT: 1
+b_range: [0]
+entropy_AE: True
+compress_per_channel: True
+decompress: False # to use decompress, please set test_n_job to ZERO
+ae_backend: cc
+adapt: True
+lambda1: 0.
+lambda2: 0.01
+lambda4: 1.
+lambda4s: [1.]
+
+z_encode: NONE
+z_decode: NONE
+z_quant: NONE
+z_entropy_model: NONE
+

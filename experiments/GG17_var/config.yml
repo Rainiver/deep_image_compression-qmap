@@ -1,0 +1,70 @@
+dataset: # Required.
+  type: base
+  train:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/trainset.txt
+  test:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/kodak.txt
+  color_image: True
+  batch_size: 16
+  workers: 3            # number of workers of dataloader for each process
+  data_augment:
+    train:
+      - img_random_crop:
+          crop_size: 256
+    test:
+
+log_dir: $EXP_ROOT/logs
+GPUs: 1
+batch_size: 16
+test_n_jobs: 8
+
+lr: 1e-4
+lr_milestion: [3000] # training with 1e-4 forever
+lr_scheduler_gamma: 0.5
+
+epoch: 2001
+show_interval: 50
+show_bpp_interval: 2000
+test_interval: 2 # deprecated
+snapshot_interval: 20
+
+linklink: True
+load_epoch: -1
+
+y_encode: YGG17_VAR
+y_encode_args:
+  normalization: gdn
+  conv: signal  # 'signal' or 'conv'
+  lambda4s: [1., 0.5, 1., 1.5]
+
+y_decode: YGG17_VAR
+y_decode_args:
+  deconv: signal  # 'signal' or 'deconv'
+  lambda4s: [1., 0.5, 1., 1.5]
+
+y_quant: RT
+BIT: 1
+b_range: [0]
+num_features_encode: 256
+num_features_decode: 256
+num_features_entropy_model: 256
+entropy_model: bottleneck
+entropy_model_args:
+  likelihood_bound: 0.000000001
+entropy_AE: True
+compress_per_channel: True
+decompress: False
+ae_backend: cc
+adapt: True
+lambda1: 0.
+lambda2: 0.01
+lambda4: 1.  # useless for variable rate case
+lambda4s: [1., 0.5, 1., 1.5]  # [0] for val and test, later items for training
+
+z_encode: NONE
+z_decode: NONE
+z_quant: NONE
+z_entropy_model: NONE
+

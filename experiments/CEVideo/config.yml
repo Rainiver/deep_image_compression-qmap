@@ -1,0 +1,125 @@
+log_dir: $EXP_ROOT/logs
+
+test_n_jobs: 0
+
+dataset: # Required.
+  type: base
+  train:
+    meta_file_list:
+      - /mnt/lustre/share/fe/guojun/video_trainset.txt
+  test:
+    meta_file_list:
+      - /mnt/lustre/share/fe/guojun/uvg_png.txt
+  color_image: True
+  batch_size: 16
+  video: True
+  workers: 3            # number of workers of dataloader for each process
+  data_augment:
+    train:
+      - img_random_crop:
+          crop_size: 256
+    test:
+                                                          
+
+lr: 1e-4
+lr_milestion: [3000] # training with 1e-4 forever
+lr_scheduler_gamma: 0.5
+
+epoch: 20
+show_interval: 2000
+show_bpp_interval: 20000
+test_interval: 2 # deprecated
+snapshot_interval: 1
+
+linklink: True
+load_epoch: -1
+
+codec: cevideo
+
+entropy_model_args:
+  K: 2
+
+vars:
+  C: 192
+
+# we train and validate results with the t frame
+train_gt: xt
+test_gt: xt
+
+model_arch:
+  y_encoder:
+    import: nets.encoder.YEncoder_CEVideo
+    kwargs:
+      in_channels: 3
+      n: 192
+
+  y_decoder: 
+    import: nets.decoder.YDecoder_CEVideo
+    kwargs:
+      n: 192
+      out_channels: 3
+
+  y_quant: 
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: RT
+
+  y_parameter:
+    import: torch.nn.Identity
+
+  entropy_pre: 
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: gaussian
+      likelihood_bound: 0.000000001
+      scale_bound: 0.11
+      K: 2
+
+  z_encoder:
+    import: nets.encoder.ZEncoder_CEVideo
+    kwargs:
+      n: 192
+
+  z_decoder: 
+    import: nets.decoder.ZDecoder_CEVideo
+    kwargs:
+      n: 192
+      m: 80
+      out_channels: 1152 # equal to 3*K*C
+
+  z_quant: 
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: RT
+
+  z_entropy_pre: 
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: bottleneck
+      likelihood_bound: 0.000000001
+      num_filters: $C
+
+  yuv_pre: 
+    import: torch.nn.Identity
+  post:
+    import: torch.nn.Identity
+
+
+BIT: 1
+b_range: [0]
+num_features_encode: 256
+num_features_decode: 256
+num_features_entropy_model: 256
+
+entropy_AE: True
+compress_per_channel: True
+decompress: False
+ae_backend: cc
+adapt: False
+lambda1: 0.
+lambda2: 0.01
+lambda4: 1.
+lambda4s: [1.]
+
+
+

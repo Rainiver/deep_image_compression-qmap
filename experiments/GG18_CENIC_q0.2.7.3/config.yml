@@ -1,0 +1,91 @@
+BIT: 1
+adapt: false
+ae_backend: cc
+b_range:
+- 0
+blocks: false
+codec: gg18q-mix-quant
+compress_per_channel: true
+dataset:
+  batch_size: 16
+  color_image: true
+  data_augment:
+    test: null
+    train:
+    - img_random_crop:
+        crop_size: 256
+  test:
+    meta_file_list:
+    - /mnt/lustre/share/fe/codec_list/kodak.txt
+  train:
+    meta_file_list:
+    - /mnt/lustre/share/fe/codec_list/trainset.txt
+  type: base
+  workers: 3
+decompress: false
+entropy_AE: true
+entropy_model: gaussian
+entropy_model_args:
+  likelihood_bound: 1.0e-09
+  scale_bound: 0.11
+epoch: 2001
+lambda1: 1000.0
+lambda2: 0.4
+lambda4: 30.0
+lambda4s:
+- 1.0
+lambda_grad_simple_v2: 0.04
+linklink: true
+load_epoch: -1
+log_dir: $EXP_ROOT/logs
+lr: 1e-4
+lr_milestion:
+- 3000
+lr_scheduler_gamma: 0.5
+num_features_decode: 192
+num_features_encode: 192
+num_features_entropy_model: 192
+post: NONE
+show_bpp_interval: 1000
+show_interval: 200
+snapshot_interval: 200
+test_interval: 2
+test_n_jobs: 0
+y_decode: YGG18
+y_decode_args:
+  deconv: signal_upsample
+  upsample_mode: subpixel
+  conv_first: true
+  normalization: 1dn_no_pow
+  stage_widths:
+  - 100
+  - 126
+  - 52
+y_encode: YGG18
+y_encode_args:
+  conv: signal
+  normalization: 1dn_no_pow
+  stage_widths:
+  - 52
+  - 126
+  - 100
+y_quant: RT
+y_quant_round: round
+yuv_pre: NONE
+z_decode: QZGG18Clip
+z_decode_args:
+  deconv: signal
+  stage_widths:
+  - 246
+  - 176
+z_encode: ZGG18
+z_encode_args:
+  conv: signal
+  stage_widths:
+  - 176
+  - 246
+z_entropy_model: bottleneck
+z_entropy_model_args:
+  likelihood_bound: 1.0e-09
+z_quant: RT
+z_quant_round: round

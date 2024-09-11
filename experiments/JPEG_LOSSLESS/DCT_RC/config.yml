@@ -1,0 +1,163 @@
+dataset: # Required.
+  type: dct
+  train:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/trainset.txt
+  test:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/kodak.txt  # if not set, random jpeg quality will be sampled in range [10, 100]
+  color_image: True
+  batch_size: 16
+  workers: 3            # number of workers of dataloader for each process
+  data_augment:
+    train:
+      - img_random_crop:
+          crop_size: 256
+    test:
+log_dir: $EXP_ROOT/logs
+test_n_jobs: 0
+
+lr: 1e-4
+lr_milestion: [1500]
+lr_scheduler_gamma: 0.1
+
+epoch: 2001
+show_interval: 200
+show_bpp_interval: 0
+test_interval: 2 # deprecated
+snapshot_interval: 50
+
+linklink: True
+load_epoch: -1
+
+codec: dct-rc
+vars:
+model_arch:
+  # lossy compression
+  y_encoder:
+    import: nets.encoder.encoders
+    kwargs:
+      tag: DCTYGG18
+      in_channels: 64
+      out_channels: 192
+
+  y_quant:
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: round
+
+  y_decoder:
+    import: nets.decoder.decoders
+    kwargs:
+      tag: DCTYGG18
+      in_channels: 64
+      out_channels: 192
+
+  entropy_pre:
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: bottleneck
+      delta: 1
+      num_filters: 192
+      likelihood_bound: 0.000000001
+
+  # residual
+  residual:
+    import: nets.encoder.Residual
+    kwargs:
+      denorm: true
+
+  # lossless residual compression
+  ry_encoder:
+    import: torch.nn.Identity
+
+  ry_quant:
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: round
+
+  ry_decoder:
+    import: torch.nn.Identity
+
+  rz_encoder:
+    import: nets.encoder.encoders
+    kwargs:
+      tag: ZGG18C
+      in_channels: 64
+      out_channels: 192
+
+  rz_quant:
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: RT
+
+  rz_decoder:
+    import: nets.decoder.decoders
+    kwargs:
+      tag: ZGG18C
+      out_channels: 192
+      in_channels: 64  # actually 128
+
+  ry_context:
+    import: nets.context.context_models
+    kwargs:
+      tag: GG18C
+      in_channels: 64
+      out_channels: 128
+
+  ry_parameter:
+    import: nets.param.param_models
+    kwargs:
+      tag: GG18C
+      in_channels: 256
+      out_channels: 128
+
+  r_entropy_pre:
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: gaussian
+      likelihood_bound: 0.000000001
+      delta: 1
+      scale_bound: 0.11
+
+  rz_entropy_pre:
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: bottleneck
+      delta: 1
+      num_filters: 192
+      likelihood_bound: 0.000000001
+
+  pre:
+    import: nets.pre.pre_builder.pre
+    kwargs:
+      tag: dct-coef
+      flatten: false
+      normalize: true
+      scale_factor: 255
+
+train_gt: tmp/x_after_pre
+test_gt: tmp/x_after_pre
+fast_train: True
+pre: dct-coef
+
+blocks: False # fen kuai?
+
+BIT: 1
+b_range: [0]
+num_features_encode: 256
+num_features_decode: 256
+num_features_entropy_model: 192
+
+entropy_AE: True
+compress_per_channel: True
+decompress: False
+ae_backend: cc
+adapt: False
+lambda1: 0.
+lambda2: 0.
+lambda4: 1.
+lambda4s: [1.]
+
+
+

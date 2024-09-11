@@ -1,0 +1,91 @@
+dataset: # Required.
+  type: base
+  train:
+    meta_file_list:
+      - /mnt/lustre/share/fe/face_data/codec/lossless/data_list/imagenet64_train.txt
+  test:
+    meta_file_list:
+      - /mnt/lustre/share/fe/face_data/codec/lossless/data_list/imagenet64_valid.txt
+  color_image: True
+  batch_size: 64
+  workers: 3            # number of workers of dataloader for each process
+  data_augment:
+    train:
+    test:
+log_dir: $EXP_ROOT/logs
+test_n_jobs: 0
+
+lr: 1e-4
+lr_milestion: [ 250, 500, 750 ]
+lr_scheduler_gamma: 0.1
+
+epoch: 20
+show_interval: 200
+show_bpp_interval: 0
+test_interval: 2 # deprecated
+snapshot_interval: 1
+
+linklink: True
+load_epoch: -1
+
+codec: idf
+vars:
+model_arch:
+  flow:
+    import: nets.flow.flows
+    kwargs:
+      tag: IDF
+      descale: True
+      n_levels: 4
+      n_flows: 8
+      n_channels: 512
+      in_channels: 3
+      densenet_depth: 12
+      splitfactor: 4
+      inverse_bin_width: 256
+      splitprior_type: densenet #choices['none', 'resnet', 'densenet', 'densenet++']
+      coupling_type: densenet #choices['resnet', 'densenet', 'densenet++']
+      round_approx: smooth #choice ['smooth', 'stochastic']
+      inv_permute: False
+      rezero: False
+
+  entropy_pre:
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: logistic
+      delta: 0.00390625 # 1 / 256
+      scale_bound: 0.00000001 #1e-8
+
+  prior:
+    import: nets.layers.Prior
+    kwargs:
+      channel: 96
+      height: 4
+      width: 4
+      n_mixtures: 5
+
+train_gt: tmp/x_after_pre
+test_gt: tmp/x_after_pre
+fast_train: True
+pre: format
+
+blocks: False # fen kuai?
+
+BIT: 1
+b_range: [ 0 ]
+num_features_encode: 256
+num_features_decode: 256
+num_features_entropy_model: 192
+
+entropy_AE: True
+compress_per_channel: True
+decompress: False
+ae_backend: cc
+adapt: False
+lambda1: 0.
+lambda2: 0.
+lambda4: 1.
+lambda4s: [ 1. ]
+
+
+

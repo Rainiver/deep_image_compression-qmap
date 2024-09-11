@@ -1,0 +1,166 @@
+# deprecated
+# this config is out-of-date
+# see GG20C
+log_dir: $EXP_ROOT/logs
+
+test_n_jobs: 0
+
+dataset: # Required.
+  type: base
+  train:
+    meta_file_list:
+      - /mnt/lustre/share/fe/hedailan/codec_list/trainset.txt
+  test:
+    meta_file_list:
+      - /mnt/lustre/share/fe/hedailan/codec_list/kodak.txt
+  color_image: True
+  batch_size: 16
+  workers: 3            # number of workers of dataloader for each process
+  data_augment:
+    train:
+      - img_random_crop:
+          crop_size: 256
+    test:
+                                                          
+
+lr: 1e-4
+lr_milestion: [3000] # training with 1e-4 forever
+lr_scheduler_gamma: 0.5
+
+epoch: 2001
+show_interval: 2000
+show_bpp_interval: 20000
+test_interval: 2 # deprecated
+snapshot_interval: 20000
+
+linklink: True
+load_epoch: -1
+
+codec: gg20c
+
+vars:
+  M: 320
+  N: 192
+  N_GROUPS: 10
+
+model_arch:
+  y_encoder:
+    import: nets.encoder.encoders
+    kwargs:
+      tag: YGG18
+      normalization: 1dn_no_pow
+      conv: signal  # 'signal' or 'conv'
+      in_channels: 3
+      out_channels: $M
+      stage_widths:
+      - $N
+      - $N
+      - $N
+
+  y_decoder: 
+    import: nets.decoder.decoders
+    kwargs:
+      tag: YGG18
+      deconv: signal  # 'signal' or 'deconv'
+      normalization: 1dn_no_pow
+      in_channels: 3
+      out_channels: $M
+      stage_widths:
+      - $N
+      - $N
+      - $N
+
+  y_quant: 
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: RT
+
+  y_quant_round: 
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: round
+
+  entropy_pre: 
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: gaussian
+      likelihood_bound: 0.000000001
+      scale_bound: 0.11
+      num_filters: $M
+
+  y_context:
+    import: nets.context.context_models
+    kwargs:
+      tag: GG20C
+      n_groups: $N_GROUPS
+
+  y_parameter:
+    import: nets.param.param_models
+    kwargs:
+      tag:  GG20CNew
+      n_groups: $N_GROUPS
+      conv: signal
+      in_channels: $M # number of y's channel
+      out_channels: $(2)M
+
+  z_encoder:
+    import: nets.encoder.encoders
+    kwargs:
+      tag: ZGG18C
+      normalization: gdn
+      conv: signal
+      in_channels: $M
+      out_channels: $N
+
+  z_decoder: 
+    import: nets.decoder.decoders
+    kwargs:
+      tag: ZGG18C
+      deconv: deconv # according to original code, disable rdft here
+      in_channels: $M
+      out_channels: $N # actually 2*C
+      stage_width:
+        - $N
+        - $(1.5)N
+
+  z_quant: 
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: RT
+
+  z_quant_round: 
+    import: quant.quantizator.quantizators
+    kwargs:
+      tag: round
+
+  z_entropy_pre: 
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: bottleneck
+      likelihood_bound: 0.000000001
+      num_filters: $N
+
+  yuv_pre: 
+    import: torch.nn.Identity
+  post:
+    import: torch.nn.Identity
+
+
+BIT: 1
+b_range: [0]
+num_features_encode: 256
+num_features_decode: 256
+num_features_entropy_model: 256
+
+entropy_AE: True
+compress_per_channel: True
+decompress: False
+ae_backend: cc
+adapt: False
+lambda1: 0.
+lambda2: 0.01
+lambda4: 1.
+lambda4s: [1.]
+
+
+

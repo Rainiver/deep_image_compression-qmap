@@ -1,0 +1,33 @@
+api_version: 1.0 # SCI(spring common interface) 版本号
+metadata:
+  node_name: codec_ppo # name of the node
+spec:
+  entrypoint: main
+
+  templates:
+    # template main
+    - name: main
+      stages:
+        - name: ppo
+          template: ppo-task
+          arguments:
+            - name: new_arch
+              value: ~
+            - name: task_config
+              path: gg18.yaml
+            - name: stage_config
+              path: codec_stage.yaml
+            - name: weights
+              value: ~
+
+    # template search-task
+    - name: ppo-task
+      type: PPOStage
+      inputs:
+        - name: new_arch # for NAS or pruned model
+        - name: task_config
+        - name: stage_config
+        - name: weights
+      outputs:
+        - type: Model
+

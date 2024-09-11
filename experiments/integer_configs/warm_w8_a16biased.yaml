@@ -1,0 +1,50 @@
+model_cfg:  # for quantized models
+  EMAAct:
+    activation_bit: 16
+    quant_mode: biased
+    tail: clip
+    stat_mode: quick
+    use_batch_stat: false
+    sync: false
+    channel_wise: false # trt 似乎只有weight scale可以分组
+    enable_quant_grad: false
+
+  NoBnConv2d_NoBnConvTranspose2d:
+    weight_bit: 8
+    quant_mode: symmetric
+    tail: preserve
+    channel_wise: true
+    enable_quant_grad: false
+
+
+training_schedule:
+  - num_epoch: 500 # fp32 warm up, no stat
+    running_stat: false
+    quick_stat: false
+    quant_w: false
+    quant_a: false
+    lr_scale: 1.0
+  - num_epoch: 600 # qw, no stat
+    running_stat: false
+    quick_stat: false
+    quant_w: true
+    quant_a: false
+    lr_scale: 1.0
+  - num_epoch: 10 # qw, stat
+    running_stat: true
+    quick_stat: true
+    quant_w: true
+    quant_a: false
+    lr_scale: 1.0
+  - num_epoch: 900 # qwqa, no stat
+    running_stat: false
+    quick_stat: false
+    quant_w: true
+    quant_a: true
+    lr_scale: 1.0
+
+
+test_cfg: # for test_quant.sh
+    quant_w: true
+    quant_a: true
+

@@ -1,0 +1,95 @@
+log_dir: $EXP_ROOT/logs
+
+test_n_jobs: 0
+post: NONE
+
+dataset: # Required.
+  type: base
+  train:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/trainset.txt
+  test:
+    meta_file_list:
+      - /mnt/lustre/share/fe/codec_list/kodak.txt
+  color_image: True
+  batch_size: 16
+  workers: 3            # number of workers of dataloader for each process
+  data_augment:
+    train:
+      - img_random_crop:
+          crop_size: 256
+    test:
+                                                          
+
+lr: 1e-4
+lr_milestion: [3000] # training with 1e-4 forever
+lr_scheduler_gamma: 0.5
+
+epoch: 501
+show_interval: 10
+show_bpp_interval: 20000
+test_interval: 2 # deprecated
+snapshot_interval: 10
+
+linklink: True
+#linklink: False
+load_epoch: -1
+
+vars:
+  bks: 8
+  qp: 75
+  C: 64 # bks * bks
+
+codec: pipelines.models.JEPGCodec
+
+model_arch:
+  jpeg_encoder:
+    import: nets.dct.DCT_Param
+    kwargs:
+      block_size: $bks
+      quantization: round
+      quality: $qp
+      dct_norm: False
+
+  jpeg_decoder:
+    import: nets.dct.IDCT
+    kwargs:
+      block_size: $bks
+      quality: $qp
+      dct_norm: False
+
+  dct_flatten:
+    import: nets.dct.DCT_FLATTEN
+
+  y_entropy_pre:
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: bottleneck
+      likelihood_bound: 0.000000001
+      num_filters: $C
+
+  u_entropy_pre:
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: bottleneck
+      likelihood_bound: 0.000000001
+      num_filters: $C
+
+  v_entropy_pre:
+    import: nets.entropy.entropy_models
+    kwargs:
+      tag: bottleneck
+      likelihood_bound: 0.000000001
+      num_filters: $C
+
+BIT: 1
+b_range: [0]
+ae_backend: cc
+adapt: False
+lambda1: 0.
+lambda2: 0.01
+lambda4: 1.
+lambda4s: [1.]
+
+
+
