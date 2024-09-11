@@ -1,0 +1,143 @@
+version: 0.0               # 该yaml的版本
+type: AgilityTaskHelper            # 实现的接口的类型
+config:
+  epoch: 2001
+  # show_bpp_interval: 100 # 20000 / 200 = 100, evaluate (duplicate)
+  show_bpp_interval: -1  # this is duplication when set val_freq
+  show_img_interval: 25  # 2000 * 500 / 20000 = 50, 50 / 2 = 25
+
+  eval:
+    as_val: False
+    func_mode: verbose
+
+  codec: gg18
+  nas: False
+
+  log_dir: $EXP_ROOT/logs
+  fast_train: True
+  test_n_jobs: 0
+
+  dataset: # Required.
+    type: base
+    train:
+      meta_file_list:
+        - /mnt/lustre/share/fe/codec_list/trainset.txt # bj15
+    #        - /mnt/lustre/share/codec_list/trainset.txt # 40
+    test:
+      meta_file_list:
+        - /mnt/lustre/share/fe/codec_list/kodak.txt # bj15
+    #        - /mnt/lustre/share/codec_list/kodak.txt # 40
+    fast_test:
+      meta_file_list:
+        #        - /mnt/lustre/share/fe/codec_list/tecnic_RGB_OR_1200x1200.txt
+        - /mnt/lustre/share/fe/hedailan/codec_list/tecnick100_1200x1200.txt
+    #        - /mnt/lustre/share/fe/codec_list/kodak.txt # bj15
+    #        - /mnt/lustre/share/codec_list/kodak.txt # 40
+    color_image: True
+    batch_size: 8
+    workers: 3            # number of workers of dataloader for each process
+    data_augment:
+      train:
+        - img_random_crop:
+            crop_size: 256
+      test: ~
+      fast_test: ~
+
+  lr: 1e-4
+  lr_milestion: [1500000] # training with 1e-4 forever 3000 * 8000(len-trainset) / 16 = 1500000
+  lr_scheduler_gamma: 0.5
+
+  linklink: True
+  load_epoch: -1
+
+  vars:
+    C: 256
+    2C: 512
+    4C: 1024
+
+  model_arch:
+    y_encoder:
+      import: nets.encoder.encoders
+      kwargs:
+        tag: YGG18
+        normalization: gdn
+        conv: signal  # 'signal' or 'conv'
+        in_channels: 3
+        out_channels: $C
+
+    y_decoder:
+      import: nets.decoder.decoders
+      kwargs:
+        tag: YGG18
+        deconv: signal  # 'signal' or 'deconv'
+        in_channels: 3
+        out_channels: $C
+
+    y_quant:
+      import: quant.quantizator.quantizators
+      kwargs:
+        tag: RT
+
+    entropy_pre:
+      import: nets.entropy.entropy_models
+      kwargs:
+        tag: gaussian
+        likelihood_bound: 0.000000001
+        scale_bound: 0.11
+        num_filters: $C
+
+    z_encoder:
+      import: nets.encoder.encoders
+      kwargs:
+        tag: ZGG18
+        normalization: gdn
+        conv: signal
+        in_channels: $C
+        out_channels: $C
+
+    z_decoder:
+      import: nets.decoder.decoders
+      kwargs:
+        tag: ZGG18
+        deconv: deconv
+        in_channels: $C
+        out_channels: $C
+
+    z_quant:
+      import: quant.quantizator.quantizators
+      kwargs:
+        tag: RT
+
+    z_entropy_pre:
+      import: nets.entropy.entropy_models
+      kwargs:
+        tag: bottleneck
+        likelihood_bound: 0.000000001
+        num_filters: $C
+    pre:
+      import: torch.nn.Identity
+    yuv_pre:
+      import: torch.nn.Identity
+    post:
+      import: torch.nn.Identity
+
+
+  BIT: 1
+  b_range: [0]
+  num_features_encode: 256
+  num_features_decode: 256
+  num_features_entropy_model: 256
+
+  entropy_AE: True
+  compress_per_channel: True
+  decompress: False
+  ae_backend: cc
+  adapt: False
+  lambda1: 0.
+  lambda2: 0.01
+  lambda4: 1.
+  lambda4s: [1.]
+  metrics:
+    msssim: 1.
+
+

@@ -1,0 +1,8 @@
+cudnn_benchmark: false
+
+print_freq: 200  # show log
+snapshot_freq: 1000000  # save ckpt 500 * 2000 = 1000000 that is never save during training, NOTE: it will always save after train
+val_freq: 20000 # 200 * 100  NOTE: in nas it's useless, however in train stage it will record best metric ckpt
+
+saver:
+  pretrain_model: ~  # only use in nas ?

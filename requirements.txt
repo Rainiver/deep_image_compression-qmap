@@ -1,0 +1,15 @@
+pyyaml==5.3.1
+easydict==1.9
+tensorboard==2.2.1
+pytest==5.4.1
+future==0.18.2
+scipy==1.4.1
+opencv-python==4.2.0.34
+numpy==1.18.3
+Pillow~=7.2.0
+tqdm~=4.47.0
+prefetch_generator==1.0.1
+dataclasses
+thop
+onnx
+#torchjpeg
