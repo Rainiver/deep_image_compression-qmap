@@ -1,0 +1,9 @@
+work_path=$(dirname $0)
+export PYTHONPATH=..:$PYTHONPATH
+spring.submit arun --mpi=pmi2 -p $1 -n1 --ntasks-per-node=1 --cpus-per-task=8 --job-name=codec-test-$2 \
+"python -u -W ignore playground.py \
+--root $2 \
+--verbose \
+--test_quality_entropy \
+--test_real_bpp \
+--device=cpu"

@@ -1,0 +1,1 @@
+bash to_nart_local.sh $1 $2 $3

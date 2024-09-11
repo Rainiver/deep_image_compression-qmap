@@ -1,0 +1,75 @@
+{
+    "__image__": "registry.sensetime.com/nart/nart:1.2.9-dev-cuda10.0-0059dff1",
+    "default_net_type_token":"tensorrt",
+    "rand_input": false,
+
+    "量化用数据数量": "int。若不进行量化，可设置data_num=0",
+    "data_num": 0,
+
+    "设置各输入tensor的尺寸范围，分别是最小/最大/优化尺寸": "dict。如果不指定，则使用模型中的尺寸。优化尺寸即转换出的模型默认的尺寸，并且tensorrt将按照该尺寸进行优化。",
+    "min_shapes": {"y_encoder_data": [1, 3, 64, 64], "y_decoder_data":[1, 192, 4, 4], "z_encoder_data": [1, 192, 4, 4], "z_decoder_data": [1, 192, 1, 1]},
+    "max_shapes": {"y_encoder_data": [1, 3, 2048, 2048], "y_decoder_data":[1, 192, 128, 128], "z_encoder_data": [1, 192, 128, 128], "z_decoder_data": [1, 192, 32, 32]},
+    "build_shapes": {"y_encoder_data": [1, 3, 704, 512], "y_decoder_data":[1, 192, 44, 32], "z_encoder_data": [1, 192, 44, 32], "z_decoder_data": [1, 192, 11, 8]},
+
+    "tensorrt": {
+        "是否使用fp16": "bool (默认：false)",
+        "use_fp16": true,
+
+        "是否使用int8离线量化": "bool (默认：false) (由于tensorrt7的一个bug，离线量化与dynamic_shape不能同时使用)",
+        "use_int8": false,
+
+        "是否使用动态shape": "为true时，转换出的模型的尺寸可在min_shapes和max_shapes范围内设置；为false时即固定为模型中的尺寸。目前在离线量化时要求设置为false.默认：true",
+        "dynamic_shape": true,
+
+        "需要使用fp32计算的layer名字列表": "list of string",
+        "fp32_layers": [],
+
+        "手动设置张量的动态范围": "dict<str, float>。设置了范围的tensor相关的层会使用int8计算。如果不需要，可不写或将值置为null。注：同时手动配置张量动态范围和使用离线量化可能有坑",
+        "blob_range": null
+    },
+    "comment1": "You can use this config for z_decoder_int cuda backend",
+    "dtype": {"z_decoder_data": "int32",
+              "24": "int32",
+              "25": "int32",
+              "deconv1.w2": "int8",
+              "deconv1.b2": "int32",
+              "28": "int32",
+              "30": "int32",
+              "35": "int32",
+              "36": "int32",
+              "deconv2.w2": "int8",
+              "deconv2.b2": "int32",
+              "39": "int32",
+              "41": "int32",
+              "46": "int32",
+              "47": "int32",
+              "deconv3.w2": "int8",
+              "deconv3.b2": "int32",
+              "50": "int32",
+              "52": "int32",
+              "57": "int32",
+              "58": "int32"
+              },
+    "comment2": "you may debug op output via op output name",
+    "output_names": ["cast_2_in", "26", "27", "29", "32", "cast_10_in", "37", "38", "40", "43", "cast_18_in", "48", "49", "51", "54", "cast_26_in"],
+    "comment3": "name of op is [type]_[outputname], e.g. Cast_26",
+    "set_net_type": {
+                      "Clip_cast_2_in": "cuda",
+                      "Cast_26": "cuda",
+                      "ConvTranspose_27": "cuda",
+                      "Add_29": "cuda",
+                      "Div_32": "cuda",
+                      "Clip_cast_10_in": "cuda",
+                      "Cast_37": "cuda",
+                      "ConvTranspose_38": "cuda",
+                      "Add_40": "cuda",
+                      "Div_43": "cuda",
+                      "Clip_cast_18_in": "cuda",
+                      "Cast_48": "cuda",
+                      "ConvTranspose_49": "cuda",
+                      "Add_51": "cuda",
+                      "Div_54": "cuda",
+                      "Clip_cast_26_in": "cuda",
+                      "Cast_z_decoder_out": "cuda"
+    }
+}
