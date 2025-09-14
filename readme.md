@@ -1,5 +1,7 @@
 # Deep Learning Image Compression
 
+> **Note**: This project originates from my earlier work and has been recently reorganized and released for reproducibility.
+
 This repository provides an experimental framework for **image compression based on deep neural networks**.  
 It integrates modules for entropy coding, JPEG tools, training pipelines, and evaluation scripts.
 
@@ -195,3 +197,4 @@ Supported modes:
 * `to_caffe` (WIP)
 
 Pipeline configurations are YAML-based, supporting modular process definitions and dynamic model builders.
+
